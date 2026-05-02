@@ -1,0 +1,35 @@
+{
+    "name": "ESP-IDF 1.3 Blink",
+    "image": "espressif/idf:release-v5.4",
+    "postCreateCommand": "echo '. /opt/esp/idf/export.sh' >> ~/.zshrc",
+    "containerEnv": {
+        "ESPPORT": "rfc2217://host.docker.internal:4000?ign_set_control"
+    },
+    "customizations": {
+        "settings": {
+            "extensions.ignoreRecommendations": true,
+            "idf.showOnboardingOnInit": false,
+            "idf.customExtraPaths": "",
+            "idf.currentSetup": "/opt/esp/idf",
+            "idf.pythonBinPath": "/opt/esp/python_env/idf5.4_py3.12_env/bin/python",
+            "idf.toolsPath": "/opt/esp/tools"
+        },
+        "vscode": {
+            "extensions": [
+                "espressif.esp-idf-extension",
+                "ms-vscode.cmake-tools",
+                "ms-python.python"
+            ]
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/common-utils:2.5.7": {
+            "username": "none",
+            "installZsh": "true",
+            "configureZshAsDefaultShell": "true",
+            "installOhMyZsh": "true",
+            "upgradePackages": "false"
+        }
+    }
+}
