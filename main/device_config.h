@@ -1,0 +1,7 @@
+#ifndef DEVICE_CONFIG_H
+#define DEVICE_CONFIG_H
+
+#define CONFIG_BLINK_PERIOD 5000
+#define CONFIG_BLINK_GPIO 4
+
+#endif

@@ -1,2 +1,4 @@
-build
 .venv
+build
+managed_components
+sdkconfig.old

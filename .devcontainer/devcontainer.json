@@ -18,6 +18,8 @@
             "extensions": [
                 "espressif.esp-idf-extension",
                 "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack",
                 "ms-python.python"
             ]
         }
