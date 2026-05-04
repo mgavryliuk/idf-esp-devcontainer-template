@@ -41,9 +41,9 @@ static void RGB_LED_Toggle(void) {
     if (isRed) {
         red_color = 0;
         green_color = 0;
-        blue_color = 255;
+        blue_color = 50;
     } else {
-        red_color = 255;
+        red_color = 50;
         green_color = 0;
         blue_color = 0;
     }
