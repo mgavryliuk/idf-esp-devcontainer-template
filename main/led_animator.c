@@ -47,6 +47,7 @@ static const LedPattern_t PATTERNS[] = {
 static volatile LedMode_t eCurrentMode = LED_MODE_IDLE;
 
 void vLedAnimatorCreateTask() {
+    vConfigure();
     xTaskCreate(vLedAnimatorTask, "LedAnimatorTask", 4096, NULL, 5, NULL);
 }
 
@@ -84,9 +85,6 @@ static void vRunBlinkPattern(uint8_t cycle_amount) {
 
 static void vLedAnimatorTask(void* pvParameter) {
     LedMode_t mode;
-    vConfigure();
-
-    vLedAnimatorSetMode(LED_MODE_POLICE);
     while (1) {
         mode = (eCurrentMode) % (LED_MODE_MAX - 1) + 1;
         vLedAnimatorSetMode(mode);

@@ -5,12 +5,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-static void vBuzzerConfigure(void);
+static void vConfigure(void);
 static void vPlayTone(uint32_t freq_hz, uint32_t duration_ms);
 static void vPlayMelody(void);
 static void vBuzzerTask(void* pvParameter);
 
-static const char* LOG_PREFIX = "[Buzzer Task]";
+static const char* LOG_PREFIX = "[Buzzer Melody]";
 static volatile BuzzerMode_t eCurrentMode = BUZZER_MODE_IDLE;
 
 static const BuzzerNote_t MELODY1[] = {
@@ -50,6 +50,7 @@ static const BuzzerMelody_t MELODIES[] = {
 };
 
 void vBuzzerCreateTask() {
+    vConfigure();
     xTaskCreate(vBuzzerTask, "BuzzerTask", 2048, NULL, 5, NULL);
 }
 
@@ -60,7 +61,7 @@ void vBuzzerSetMode(BuzzerMode_t mode) {
     }
 }
 
-static void vBuzzerConfigure(void) {
+static void vConfigure(void) {
     ESP_LOGD(LOG_PREFIX, "Configuring buzzer on pin %d", BUZZER_IO);
     ledc_timer_config_t ledc_timer = {
         .speed_mode = BUZZER_MODE,
@@ -113,7 +114,6 @@ static void vPlayMelody(void) {
 static void vBuzzerTask(void* pvParameter) {
     BuzzerMode_t mode;
 
-    vBuzzerConfigure();
     while (1) {
         mode = (eCurrentMode) % (BUZZER_MODE_MAX - 1) + 1;
         vBuzzerSetMode(mode);
