@@ -1,5 +1,8 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
+  "editor.rulers": [
+    140
+  ],
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],
