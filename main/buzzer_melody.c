@@ -61,6 +61,11 @@ void vBuzzerSetMode(BuzzerMode_t mode) {
     }
 }
 
+void vBuzzerNextMode(void) {
+    eCurrentMode = (eCurrentMode + 1) % BUZZER_MODE_MAX;
+    ESP_LOGI(LOG_PREFIX, "Switching to next buzzer mode: %d", eCurrentMode);
+}
+
 static void vConfigure(void) {
     ESP_LOGD(LOG_PREFIX, "Configuring buzzer on pin %d", BUZZER_IO);
     ledc_timer_config_t ledc_timer = {
@@ -101,23 +106,17 @@ static void vPlayTone(uint32_t freq_hz, uint32_t duration_ms) {
 }
 
 static void vPlayMelody(void) {
-    if (eCurrentMode == BUZZER_MODE_IDLE) {
-        return;
+    if (eCurrentMode != BUZZER_MODE_IDLE) {
+        const BuzzerMelody_t* melody = &MELODIES[eCurrentMode];
+        for (uint8_t i = 0; i < melody->length; i++) {
+            vPlayTone(melody->notes[i].frequency, melody->notes[i].duration_ms);
+        }
     }
-
-    const BuzzerMelody_t* melody = &MELODIES[eCurrentMode];
-    for (uint8_t i = 0; i < melody->length; i++) {
-        vPlayTone(melody->notes[i].frequency, melody->notes[i].duration_ms);
-    }
+    vTaskDelay(pdMS_TO_TICKS(1000));
 }
 
 static void vBuzzerTask(void* pvParameter) {
-    BuzzerMode_t mode;
-
     while (1) {
-        mode = (eCurrentMode) % (BUZZER_MODE_MAX - 1) + 1;
-        vBuzzerSetMode(mode);
         vPlayMelody();
-        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }

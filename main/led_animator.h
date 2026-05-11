@@ -27,5 +27,6 @@ typedef struct {
 
 void vLedAnimatorCreateTask();
 void vLedAnimatorSetMode(LedMode_t mode);
+void vLedAnimatorNextMode(void);
 
 #endif

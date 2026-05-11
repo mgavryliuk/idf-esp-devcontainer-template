@@ -30,5 +30,6 @@ typedef struct {
 
 void vBuzzerCreateTask();
 void vBuzzerSetMode(BuzzerMode_t mode);
+void vBuzzerNextMode(void);
 
 #endif
