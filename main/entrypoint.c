@@ -11,6 +11,7 @@
 #include "led_animator.h"
 #include "photoresistor.h"
 #include "sdkconfig.h"
+#include "sht21_task.h"
 
 const static char* TAG = "[Entrypoint]";
 
@@ -40,6 +41,7 @@ void app_main(void) {
     vBuzzerCreateTask();
     vLedAnimatorCreateTask();
     vPhotoresistorCreateTask();
+    vSHT21CreateTask();
 
     vButtonsCreateTask();
     vButtonsRegisterCallback(BUTTON_LEFT_GPIO, vButtonCallback);
