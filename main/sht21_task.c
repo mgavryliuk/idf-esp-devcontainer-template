@@ -5,6 +5,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "i2c_master.h"
 
 static esp_err_t eConfigure(void);
 static esp_err_t eCheckCRC(uint8_t* raw_data);
@@ -15,7 +16,6 @@ static void vSHT21Task(void* pvParameters);
 
 static const char* LOG_PREFIX = "[SHT21]";
 
-static i2c_master_bus_handle_t i2c_bus_handle;
 static i2c_master_dev_handle_t i2c_dev_handle;
 static float temperature;
 static float humidity;
@@ -23,25 +23,9 @@ static float humidity;
 void vSHT21CreateTask(void) {
     xTaskCreate(vSHT21Task, "SHT21 Task", 4096, NULL, 5, NULL);
 }
-
 static esp_err_t eConfigure(void) {
-    i2c_master_bus_config_t i2c_bus_config = {
-        .i2c_port = SHT21_I2C_MASTER_NUM,
-        .sda_io_num = SHT21_MASTER_SDA_IO,
-        .scl_io_num = SHT21_MASTER_SCL_IO,
-        .clk_source = I2C_CLK_SRC_DEFAULT,
-        .glitch_ignore_cnt = 7,
-        .flags.enable_internal_pullup = true,
-    };
-    ESP_RETURN_ON_ERROR(i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle), LOG_PREFIX, "Failed to init I2C bus");
-
-    i2c_device_config_t i2c_device_config = {
-        .dev_addr_length = I2C_ADDR_BIT_7,
-        .device_address = SHT21_I2C_ADDRESS,
-        .scl_speed_hz = SHT21_I2C_MASTER_FREQ_HZ,
-    };
-    ESP_RETURN_ON_ERROR(i2c_master_bus_add_device(i2c_bus_handle, &i2c_device_config, &i2c_dev_handle), LOG_PREFIX,
-                        "Failed to init I2C device");
+    ESP_RETURN_ON_ERROR(eI2CConfigureMaster(), LOG_PREFIX, "Failed to configure i2c interface");
+    ESP_RETURN_ON_ERROR(eI2CAddDevice(SHT21_I2C_ADDRESS, &i2c_dev_handle), LOG_PREFIX, "Failed to configure i2c device");
     return ESP_OK;
 }
 

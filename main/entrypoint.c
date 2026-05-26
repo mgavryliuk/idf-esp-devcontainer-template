@@ -12,6 +12,7 @@
 #include "photoresistor.h"
 #include "sdkconfig.h"
 #include "sht21_task.h"
+#include "sht41_task.h"
 
 const static char* TAG = "[Entrypoint]";
 
@@ -42,6 +43,7 @@ void app_main(void) {
     vLedAnimatorCreateTask();
     vPhotoresistorCreateTask();
     vSHT21CreateTask();
+    vSHT41CreateTask();
 
     vButtonsCreateTask();
     vButtonsRegisterCallback(BUTTON_LEFT_GPIO, vButtonCallback);
