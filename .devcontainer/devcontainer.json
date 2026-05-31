@@ -10,9 +10,7 @@
             "extensions.ignoreRecommendations": true,
             "idf.showOnboardingOnInit": false,
             "idf.customExtraPaths": "",
-            "idf.currentSetup": "/opt/esp/idf",
-            "idf.pythonBinPath": "/opt/esp/python_env/idf5.4_py3.12_env/bin/python",
-            "idf.toolsPath": "/opt/esp/tools"
+            "idf.currentSetup": "/opt/esp/idf"
         },
         "vscode": {
             "extensions": [
