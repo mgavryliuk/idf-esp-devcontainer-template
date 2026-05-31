@@ -1,4 +1,4 @@
-# blink_1_3
+# IDF ESP Devcontainer Template
 
 ## Table of Contents
 [Prerequisites](#prerequisites)  
