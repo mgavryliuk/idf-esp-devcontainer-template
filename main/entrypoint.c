@@ -18,6 +18,9 @@
 #define GPIO_MATRIX_OUT_SEL_FIELD_MASK (0x1FF)
 #define GPIO_MATRIX_OEN_SEL_FIELD_MASK (BIT(10))
 
+#define RTM_SCLK_FREQ_MAX (40000000)
+#define RTM_CHAN_CLK_FREQ_MIN (RTM_SCLK_FREQ_MAX / 255)
+
 const static char* TAG = "[MAIN]";
 
 static uint32_t reg_val;
@@ -31,7 +34,7 @@ esp_err_t rmt_tx_raw_init(int gpio, int rmt_channel_tx, uint32_t resolution_hz) 
         return ESP_FAIL;
     }
 
-    if (resolution_hz > 40000000) {
+    if (resolution_hz > RTM_SCLK_FREQ_MAX || resolution_hz < RTM_CHAN_CLK_FREQ_MIN) {
         return ESP_FAIL;
     }
 
@@ -97,15 +100,28 @@ esp_err_t rmt_tx_raw_init(int gpio, int rmt_channel_tx, uint32_t resolution_hz) 
     // Configure channel
     uint32_t channel_reg = RMT_CH0CONF0_REG + DEFAULT_REG_SIZE * rmt_channel_tx;
     reg_val = REG_READ(channel_reg);
-    // TODO: calculate div properly
-    // RMT_DIV_CNT_CHn - 1
-    reg_val = (reg_val & ~(0xFF << 8)) | (1 << 8);
+
+    // RMT_DIV_CNT_CHn
+    int channel_div = (RTM_SCLK_FREQ_MAX / resolution_hz);
+    if (channel_div > 255)
+        channel_div = 255;
+    if (channel_div < 1)
+        channel_div = 1;
+    reg_val = (reg_val & ~(0xFF << 8)) | (channel_div << 8);
     // RMT_MEM_SIZE_CHn - 1 (48 * 4 байт)
     reg_val = (reg_val & ~(0xF << 16)) | (1 << 16);
     // RMT_IDLE_OUT_LV_CHn - 0
     reg_val &= ~(1 << 5);
     // RMT_IDLE_OUT_EN_CHn -1
     reg_val = (reg_val & ~(1 << 6)) | (1 << 6);
+
+    // RMT_CARRIER_EFF_EN_CHn - 0
+    // reg_val &= ~(1 << 20);
+    // RMT_CARRIER_EN_CHn - 0
+    reg_val &= ~(1 << 21);
+    // RMT_CARRIER_OUT_LV_CHn - 0
+    // reg_val &= ~(1 << 22);
+
     // RMT_CONF_UPDATE_CHn - 1
     reg_val |= (1 << 24);
     REG_WRITE(channel_reg, reg_val);
@@ -125,7 +141,7 @@ void rmt_raw_send_pulses(int rmt_channel_tx, const uint32_t duration_us, size_t 
 
     uint32_t reg_data = RMT_CH0DATA_REG + DEFAULT_REG_SIZE * rmt_channel_tx;
 
-    uint32_t ticks = duration_us * 40;
+    uint32_t ticks = duration_us;
     uint32_t first_pulse = (ticks & 0x7FFF) | ((uint32_t)(start_level & 0x1) << 15);
     uint32_t second_pulse = first_pulse ^ (1 << 15);
     for (int i = 0; i < count; i++) {
@@ -159,13 +175,13 @@ void rmt_raw_wait(int rmt_channel_tx) {
     ESP_LOGI(TAG, "Transmission finished, clearing the interrupt");
     REG_WRITE(RMT_INT_RAW_REG, BIT(rmt_channel_tx));
 
-    REG_CLR_BIT(RMT_INT_ENA_REG, BIT(rmt_channel_tx));
+    REG_CLR_BIT(RMT_INT_CLR_REG, BIT(rmt_channel_tx));
 }
 
 void app_main(void) {
     static const int channel = 0;
-    // channel 0, 100KHz (frequency is not working atm)
-    rmt_tx_raw_init(RTM_GPIO, channel, 100000);
+    // 1MHz
+    rmt_tx_raw_init(RTM_GPIO, channel, 1000000);
     rmt_raw_send_pulses(channel, 100, 20, 1);
     rmt_raw_wait(channel);
     while (1) {
