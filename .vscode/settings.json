@@ -1,5 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
+  "idf.extensionActivationMode": "always",
   "editor.rulers": [
     140
   ],
