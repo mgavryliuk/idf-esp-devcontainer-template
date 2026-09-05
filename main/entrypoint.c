@@ -111,7 +111,8 @@ esp_err_t rmt_tx_raw_init(int gpio, int rmt_channel_tx, uint32_t resolution_hz) 
     // RMT_MEM_SIZE_CHn - 1 (48 * 4 байт)
     reg_val = (reg_val & ~(0xF << 16)) | (1 << 16);
     // RMT_IDLE_OUT_LV_CHn - 0
-    reg_val &= ~(1 << 5);
+    // reg_val &= ~(1 << 5);
+    reg_val |= (1 << 5);
     // RMT_IDLE_OUT_EN_CHn -1
     reg_val = (reg_val & ~(1 << 6)) | (1 << 6);
 
@@ -178,13 +179,40 @@ void rmt_raw_wait(int rmt_channel_tx) {
     REG_CLR_BIT(RMT_INT_CLR_REG, BIT(rmt_channel_tx));
 }
 
+uint32_t make_pulse_word(uint32_t duration_us, uint8_t first_lvl, uint8_t second_lvl) {
+    uint32_t fist_part = (duration_us & 0x7fff) | (first_lvl << 15);
+    uint32_t second_part = (duration_us & 0x7fff) | (second_lvl << 15);
+    return (fist_part | (second_part << 16));
+}
+
+void rmt_uart_send_byte(int rmt_channel_tx, uint8_t data, uint32_t baud_rate, uint32_t resolution_hz) {
+    uint32_t bit_duration_us = resolution_hz / baud_rate;
+    uint32_t channel_reg = RMT_CH0CONF0_REG + DEFAULT_REG_SIZE * rmt_channel_tx;
+    uint32_t reg_data = RMT_CH0DATA_REG + DEFAULT_REG_SIZE * rmt_channel_tx;
+
+    REG_SET_BIT(channel_reg, BIT(2));
+    REG_WRITE(reg_data, make_pulse_word(bit_duration_us, 0, (data >> 0) & 1));
+    REG_WRITE(reg_data, make_pulse_word(bit_duration_us, (data >> 1) & 1, (data >> 2) & 1));
+    REG_WRITE(reg_data, make_pulse_word(bit_duration_us, (data >> 3) & 1, (data >> 4) & 1));
+    REG_WRITE(reg_data, make_pulse_word(bit_duration_us, (data >> 5) & 1, (data >> 6) & 1));
+    REG_WRITE(reg_data, make_pulse_word(bit_duration_us, (data >> 7) & 1, 1));
+    REG_WRITE(reg_data, 0);
+    uint32_t reg_val = REG_READ(channel_reg);
+    reg_val |= 0x3;  // RMT_MEM_RD_RST_CHn і RMT_TX_START_CHn
+    REG_WRITE(channel_reg, reg_val);
+}
+
 void app_main(void) {
     static const int channel = 0;
-    // 1MHz
     rmt_tx_raw_init(RTM_GPIO, channel, 1000000);
-    rmt_raw_send_pulses(channel, 100, 20, 1);
-    rmt_raw_wait(channel);
+
+    vTaskDelay(pdMS_TO_TICKS(5000));
+    char* text = "Hello World!";
+    for (int i = 0; i < 12; i++) {
+        rmt_uart_send_byte(channel, text[i], 9600, 1000000);
+        rmt_raw_wait(channel);
+    }
     while (1) {
-        vTaskDelay(1000);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
